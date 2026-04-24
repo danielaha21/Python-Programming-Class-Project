@@ -1,0 +1,155 @@
+import screen_manager
+import Wanted_Config
+import pygame
+import random
+import Wanted_Icon
+
+#Function that generates the board
+def BoardGen(rannum):
+    # Color Randomizer. Can be replaced later with other images if desired.
+    Colors = ["images/Green_Alien.png","images/Yellow_Alien.png","images/Blue_Alien.png", "images/Red_Alien.png"] #Credit to shutterstock
+    Target = Colors.pop(random.randint(0, 3))
+
+    # List of icons for spawning them later. Change the range to change the amount of icons
+    Icons = []
+    for x in range(0, Wanted_Config.squares):
+        Temp_Icon = Wanted_Icon.Icon(Colors)
+        Icons.append(Temp_Icon)
+
+    Icons[rannum].sprite = pygame.image.load(Target)
+
+    return Icons
+
+def main():
+    res = Wanted_Config.res
+    screen = pygame.display.set_mode(res)
+
+    #framerate stuff
+    clock = pygame.time.Clock()
+
+    #the screen border. Can be replaced later if desired. These contain the rectangles and surfaces, then puts them in a list for easy access later
+    border_color = (130, 130, 130) #currently a brown
+
+    rect1 = pygame.Rect(0,0,res[0]//16, res[1])
+    surf1 = pygame.Surface((rect1.width, rect1.height))
+    surf1.fill(border_color)
+
+    rect2 = pygame.Rect(res[0]- res[0]//16,0,res[0]//16, res[1])
+    surf2 = pygame.Surface((rect2.width, rect2.height))
+    surf2.fill(border_color)
+
+    rect3 = pygame.Rect(0,0, res[0], res[1]//24)
+    surf3 = pygame.Surface((rect3.width, rect3.height))
+    surf3.fill(border_color)
+
+    rect4 = pygame.Rect(0, res[1]//2 - res[1]//48,res[0], res[1]//24)
+    surf4 = pygame.Surface((rect4.width, rect4.height))
+    surf4.fill(border_color)
+
+    rect5 = pygame.Rect(0, res[1] - res[1]//24, res[0], res[1]//24)
+    surf5 = pygame.Surface((rect5.width, rect5.height))
+    surf5.fill(border_color)
+
+    border_surfaces = [surf1, surf2, surf3, surf4, surf5]
+    border_locations = {surf1 : (rect1.x, rect2.y), surf2 : (rect2.x, rect2.y), surf3 : (rect3.x, rect3.y), surf4 : (rect4.x, rect4.y), surf5 : (rect5.x, rect5.y)}
+
+
+    #Top of the screen stuff
+    poster = pygame.Rect(res[0] // 2 - res[0] // 8, res[1] // 4, res[0] // 4, res[0] // 4)
+    postersurf = pygame.image.load("images/Yellow_Alien.png")
+
+    text_surf = Wanted_Config.font.render("Click Me!", True, Wanted_Config.white)
+
+    #Joshua's Timer and Screen Manager
+    Manager = screen_manager.ScreenManager(screen)
+    Manager.show_start_screen()
+    #Timer movement stuff
+    timerx, timery = 100, 100
+    dir = "right"
+
+    #score
+    score = 0
+
+    time_remaining = 10  # Tracks how much time is left in each round.
+
+    # Simulate gameplay
+    round_time_limit = 10  # A constant that determines how long each round should last.
+    start_ticks = pygame.time.get_ticks()  # Get the current time in milliseconds
+
+#Main Game Loop
+
+    Running = True
+
+    while Running == True:
+
+        Found = False
+        rannum = random.randint(0, 99)
+        Icons = BoardGen(rannum)
+        postersurf = pygame.transform.scale(Icons[rannum].sprite, (200,200))
+
+
+        while not Found:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    Running = False
+                if event.type == pygame.MOUSEBUTTONDOWN and time_remaining >= 0:
+                    if Icons[rannum].rect.collidepoint(pygame.mouse.get_pos()):
+                        Wanted_Config.ding.play()
+                        score += 1
+                        round_time_limit += 1
+                        Found = True
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        pygame.quit()
+                        Running = False
+
+
+            screen.fill((20, 20, 20))
+
+             #timer
+            elapsed_time = (pygame.time.get_ticks() - start_ticks) / 1000  # Convert ms to seconds
+            time_remaining = round_time_limit - elapsed_time
+
+            # Show the remaining time on the screen
+            #Manager.screen.fill((0, 0, 0))  # Clear screen so timer doesn’t overlap itself each frame
+            Manager.draw_text_top_left(f"Time: {int(time_remaining)}s", Wanted_Config.white, timerx, timery)
+
+            #This wiggles the timer, to fulfill the movement requirement
+            if time_remaining <= 5:
+                if timerx == 100 and dir == "right":
+                    timerx += 2
+                elif timerx == 102 and dir == "right":
+                    timerx -= 2
+                    dir = "left"
+                elif timerx == 100 and dir == "left":
+                    timerx -= 2
+                elif timerx == 98 and dir == "left":
+                    timerx += 2
+                    dir = "right"
+            else:
+                timerx, timery = 100,100
+
+            if time_remaining <= 0:
+                Wanted_Config.gameover.play()
+                Found = True
+                Running = False
+                Manager.show_game_over_screen(score)
+
+
+
+
+
+            for border in border_surfaces:
+                screen.blit(border,border_locations[border])
+
+            for Icon in Icons:
+                Icon.draw(screen)
+
+            screen.blit(postersurf, (poster.x, poster.y))
+            screen.blit(text_surf, (res[0] // 2 - Wanted_Config.fontsize - Wanted_Config.fontsize // 3 - 5, res[1] // 6))
+            Manager.draw_text_top_left(f"Score: {score}", Wanted_Config.green, 550, 100)
+
+            pygame.display.flip()
+            clock.tick(Wanted_Config.fps)
+    return

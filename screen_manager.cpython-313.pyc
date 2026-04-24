@@ -1,0 +1,23 @@
+import pygame
+import random
+import Wanted_Config
+pygame.init()
+
+class Icon():
+    #Constructor. Decides the color of the square
+    def __init__(self,colors):
+
+        self.sprite = pygame.image.load(colors[random.randint(0,2)])
+        self.rect = self.sprite.get_rect(topleft=(0, 0))
+
+        # self.color = colors[random.randint(0,2)]
+        #self.rect = pygame.Rect(0,0,50,50)
+        #self.surf = pygame.Surface((self.rect.width, self.rect.height))
+        #self.surf.fill(self.color)
+        self.rect.topleft = (random.randint(Wanted_Config.res[0] // 16, Wanted_Config.res[0] - Wanted_Config.res[0] // 16 - self.rect.width), random.randint(
+            Wanted_Config.res[1] // 2 + Wanted_Config.res[1] // 48 + self.rect.height, Wanted_Config.res[1] - Wanted_Config.res[1] // 24) - self.rect.height)
+
+
+    #Puts the icons on the boards
+    def draw(self,surface):
+        surface.blit(self.sprite, self.rect.topleft)
