@@ -7,7 +7,8 @@
 ## Executive Summary
 Utlizing Python and PyCharm IDE, I was involved with a group project tasked to create a simple game using Pygame. We decided to create an alien version of the Mario game, "Wanted!" 
 
-
+<br>
+<br>
 
 ## Methodology
 1. Decide on project timeline and key milestones to target.
